@@ -1,6 +1,5 @@
 # Yoga-MAtNODE: Multi-View Attention Neural ODE for Skeleton-Based Yoga Pose Recognition
-**Official PyTorch Implementation**
-
+**Accepted at ICPR 2026**
 **Authors:** Rashi Niyas P, Hitika Tiwari, and Tushar Shinde
 
 ---
@@ -14,6 +13,8 @@ Key components:
 * **Implicit Multi-View Generation:** Dynamically rotates skeletons to 16 views to learn viewpoint-invariant features.
 * **Continuous-Time Dynamics (Neural ODE):** Models joint trajectories as smooth latent dynamics, capturing subtle motion patterns.
 * **Multi-View Attention:** Aggregates features across views to align semantic correspondences.
+
+**PyTorch Implementation**
 
 ---
 
@@ -103,10 +104,6 @@ python train.py
 * Batch size: 256
 * Optimizer: AdamW (lr = 1e-3)
 * LR schedule: Cosine Annealing
-
-**Outputs:**
-
-* Best model saved as `attention_yoga_node_final.pth`.
 
 ---
 
