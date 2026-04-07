@@ -1,5 +1,6 @@
 # Yoga-MAtNODE: Multi-View Attention Neural ODE for Skeleton-Based Yoga Pose Recognition
 **Accepted at ICPR 2026**
+
 **Authors:** Rashi Niyas P, Hitika Tiwari, and Tushar Shinde
 
 ---
