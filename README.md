@@ -8,7 +8,8 @@
 ## 📌 Overview
 
 Fine-grained yoga pose recognition is challenging due to subtle inter-class differences, self-occlusions, and varying camera viewpoints. **Yoga-MAtNODE** is a lightweight, skeleton-only framework that achieves state-of-the-art performance (89.17% on Yoga-82) with only **~75K parameters**.
-<img width="1231" height="770" alt="image" src="https://github.com/user-attachments/assets/21daabbb-7ccd-44cb-ae73-260bd935cc3c" />
+<img width="1291" height="1118" alt="image" src="https://github.com/user-attachments/assets/b17c1ee5-dfc7-415e-b166-b5ec52c6cf42" />
+
 
 Key components:
 
