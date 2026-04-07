@@ -1,0 +1,9 @@
+torch
+torchdiffeq
+mediapipe==0.10.14
+numpy<2
+matplotlib
+seaborn
+scikit-learn
+tqdm
+
