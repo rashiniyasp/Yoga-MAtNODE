@@ -1,5 +1,4 @@
-# Yoga-MAtNODE: Multi-View Attention Neural ODEs
-
+# Yoga-MAtNODE: Multi-View Attention Neural ODE for Skeleton-Based Yoga Pose Recognition
 **Official PyTorch Implementation**
 
 **Authors:** Rashi Niyas P, Hitika Tiwari, and Tushar Shinde
@@ -128,7 +127,6 @@ python test.py
 |     DenseNet-201 |   Image  |      18.2M |           74.91 |
 |          SYD-Net |   Image  |      33.5M |           97.29 |
 |       Pose Tutor | Skeleton |        18M |           79.00 |
-|  MLP (Keypoints) | Skeleton |        76K |           88.67 |
 | **Yoga-MAtNODE** | Skeleton |   **~75K** |       **89.17** |
 
 ---
