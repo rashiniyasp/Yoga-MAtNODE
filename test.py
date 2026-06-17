@@ -1,3 +1,4 @@
+import argparse
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,12 +13,14 @@ from dataset import MultiViewYogaDataset
 
 # --- CONFIGURATION ---
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-DATASET_ROOT = r"D:\Yoga-82\Yoga_82_Balanced_2026" # Path to processed data
-MODEL_PATH = "attention_yoga_node_final.pth"       # Path to saved weights
-BATCH_SIZE = 256
 
-# IMPORTANT: Must match the setting used during training!
-USE_VISIBILITY = False 
+def get_args():
+    parser = argparse.ArgumentParser(description="Test Yoga-MAtNODE")
+    parser.add_argument('--dataset_root', type=str, required=True, help='Path to dataset root directory')
+    parser.add_argument('--model_path', type=str, default='attention_yoga_node_final.pth', help='Path to saved weights')
+    parser.add_argument('--batch_size', type=int, default=256, help='Batch size')
+    parser.add_argument('--use_visibility', action='store_true', help='Use visibility scores')
+    return parser.parse_args()
 
 def plot_confusion_matrix(y_true, y_pred, classes):
     cm = confusion_matrix(y_true, y_pred)
@@ -37,23 +40,26 @@ def plot_confusion_matrix(y_true, y_pred, classes):
     plt.show()
 
 def main():
-    print(f"Loading Test Data from {DATASET_ROOT}...")
-    test_ds = MultiViewYogaDataset(DATASET_ROOT, 'test', transform=False, use_visibility=USE_VISIBILITY)
-    test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
+    args = get_args()
+    print(f"Loading Test Data from {args.dataset_root}...")
+    test_ds = MultiViewYogaDataset(args.dataset_root, 'test', transform=False, use_visibility=args.use_visibility)
+    test_loader = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False, num_workers=2)
     
     # Calculate input dim based on settings
     # 212 (Coords+Angles+Bones) or 245 (+Visibility)
-    input_dim = 245 if USE_VISIBILITY else 212
+    input_dim = 245 if args.use_visibility else 212
+    num_classes = len(test_ds.classes)
     
-    print(f"Initializing Model (Input Dim: {input_dim})...")
-    model = AttentionYogaNODE(input_dim=input_dim, num_classes=len(test_ds.classes))
+    print(f"Initializing Model (Input Dim: {input_dim}, Num Classes: {num_classes})...")
+    model = AttentionYogaNODE(input_dim=input_dim, num_classes=num_classes)
     model.to(DEVICE)
     
     # Load Weights
+    print(f"Loading weights from {args.model_path}")
     if torch.cuda.is_available():
-        model.load_state_dict(torch.load(MODEL_PATH))
+        model.load_state_dict(torch.load(args.model_path))
     else:
-        model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
+        model.load_state_dict(torch.load(args.model_path, map_location=torch.device('cpu')))
     
     model.eval()
     
@@ -73,7 +79,7 @@ def main():
             
     # Metrics
     acc = accuracy_score(all_labels, all_preds)
-    print(f"\n✅ Final Test Accuracy: {acc:.4f} ({acc*100:.2f}%)")
+    print(f"\nFinal Test Accuracy: {acc:.4f} ({acc*100:.2f}%)")
     
     print("\nGenerating Classification Report...")
     print(classification_report(all_labels, all_preds, target_names=test_ds.classes, digits=4))

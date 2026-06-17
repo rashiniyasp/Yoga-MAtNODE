@@ -1,4 +1,5 @@
 import os
+import argparse
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -16,43 +17,51 @@ from dataset import MultiViewYogaDataset
 
 # --- CONFIGURATION ---
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-SKELETON_DATA_ROOT = '/kaggle/input/yoga-82-augmented-skeleton-keypoints-2026/Yoga_82_Balanced_2026'
-USE_VISIBILITY = False
-BATCH_SIZE = 256
-EPOCHS = 100
+
+def get_args():
+    parser = argparse.ArgumentParser(description="Train Yoga-MAtNODE")
+    parser.add_argument('--dataset_root', type=str, required=True, help='Path to dataset root directory')
+    parser.add_argument('--epochs', type=int, default=100, help='Number of epochs to train')
+    parser.add_argument('--batch_size', type=int, default=256, help='Batch size')
+    parser.add_argument('--use_visibility', action='store_true', help='Use visibility scores')
+    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
+    return parser.parse_args()
 
 def main():
-    print(f"Initializing Loaders (Visibility={USE_VISIBILITY})...")
+    args = get_args()
+    print(f"Initializing Loaders (Visibility={args.use_visibility})...")
     
     # 1. Prepare Datasets
-    train_ds = MultiViewYogaDataset(SKELETON_DATA_ROOT, 'train', transform=True, use_visibility=USE_VISIBILITY)
-    valid_ds = MultiViewYogaDataset(SKELETON_DATA_ROOT, 'validation', transform=False, use_visibility=USE_VISIBILITY)
-    test_ds = MultiViewYogaDataset(SKELETON_DATA_ROOT, 'test', transform=False, use_visibility=USE_VISIBILITY)
+    train_ds = MultiViewYogaDataset(args.dataset_root, 'train', transform=True, use_visibility=args.use_visibility)
+    valid_ds = MultiViewYogaDataset(args.dataset_root, 'validation', transform=False, use_visibility=args.use_visibility)
+    test_ds = MultiViewYogaDataset(args.dataset_root, 'test', transform=False, use_visibility=args.use_visibility)
 
-    train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
-    valid_loader = DataLoader(valid_ds, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
-    test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
+    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=2)
+    valid_loader = DataLoader(valid_ds, batch_size=args.batch_size, shuffle=False, num_workers=2)
+    test_loader = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False, num_workers=2)
     
     print(f"Train: {len(train_ds)} | Valid: {len(valid_ds)} | Test: {len(test_ds)}")
 
     # 2. Setup Model
-    input_dim = 245 if USE_VISIBILITY else 212
-    model = AttentionYogaNODE(input_dim=input_dim).to(DEVICE)
+    input_dim = 245 if args.use_visibility else 212
+    num_classes = len(train_ds.classes)
+    print(f"Detected {num_classes} classes.")
+    model = AttentionYogaNODE(input_dim=input_dim, num_classes=num_classes).to(DEVICE)
     
     # 3. Setup Loss and Optimizer
     criterion = get_weighted_loss(train_ds, DEVICE)
-    optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-3)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-3)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
     early_stopper = EarlyStopping(patience=10, min_delta=0.005)
 
     # 4. Training Loop
     history = {'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
     
-    for epoch in range(EPOCHS):
+    for epoch in range(args.epochs):
         model.train()
         running_loss, correct, total = 0.0, 0, 0
         
-        loop = tqdm(train_loader, desc=f"Ep {epoch+1}/{EPOCHS}", leave=False)
+        loop = tqdm(train_loader, desc=f"Ep {epoch+1}/{args.epochs}", leave=False)
         
         for inputs, labels in loop:
             inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)

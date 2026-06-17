@@ -39,13 +39,37 @@ Key components:
 
 ## 🛠️ Installation
 
+**Requirements:** Python 3.9+
+
 Install the required Python packages:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**Key dependencies:** `torch`, `torchdiffeq`, `mediapipe`, `numpy`, `scikit-learn`.
+**Key dependencies:** `torch`, `torchdiffeq`, `mediapipe==0.10.14`, `numpy<2`, `scikit-learn`.
+
+---
+
+## 💾 Data Availability (RRPR Compliance)
+
+To reproduce the results, the datasets are publicly available. Download and extract them into a `datasets/` folder in the root directory:
+
+* **Yoga-82 Dataset:** [Kaggle Link](https://www.kaggle.com/datasets/rashiniyasp/yoga-82-keypoints-2026/data)
+* **Yoga-16 Dataset:** [Kaggle Link](https://www.kaggle.com/datasets/rashiniyasp/yoga-16-keypoint-dataset)
+
+Structure after extraction:
+```
+datasets/
+├── Yoga16/
+│   ├── train/
+│   ├── valid/
+│   └── test/
+└── Yoga82/
+    ├── train/
+    ├── validation/
+    └── test/
+```
 
 ---
 
@@ -93,12 +117,18 @@ python data_preparation/05_augment_balance.py
 
 ## 🧠 Training
 
-The model expects inputs shaped `(Batch, 16, 212)`, representing 16 rotated views of 212-dimensional kinematic features (coordinates + angles + bone vectors).
+The model expects inputs representing rotated views of kinematic features.
 
-To start training:
+To start training on the **Yoga-82** dataset:
 
 ```bash
-python train.py
+python train.py --dataset_root datasets/Yoga82 --epochs 100 --batch_size 256
+```
+
+To train on the **Yoga-16** dataset:
+
+```bash
+python train.py --dataset_root datasets/Yoga16 --epochs 100 --batch_size 256
 ```
 
 **Hyperparameters (as used in experiments):**
@@ -112,10 +142,16 @@ python train.py
 
 ## 📊 Evaluation
 
-To evaluate and reproduce the reported accuracy (89.17% on Yoga-82) and to generate a confusion matrix:
+To evaluate and reproduce the reported accuracy (89.17% on Yoga-82) and to generate a confusion matrix, use the testing script.
 
+For **Yoga-82**:
 ```bash
-python test.py
+python test.py --dataset_root datasets/Yoga82 --model_path attention_yoga_node_final.pth
+```
+
+For **Yoga-16**:
+```bash
+python test.py --dataset_root datasets/Yoga16 --model_path attention_yoga_node_final.pth
 ```
 
 ---

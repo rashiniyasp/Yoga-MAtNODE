@@ -1,0 +1,9 @@
+# Datasets
+datasets/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Model checkpoints (ignore test weights)
+*.pth

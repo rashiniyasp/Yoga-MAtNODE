@@ -29,7 +29,13 @@ class MultiViewYogaDataset(Dataset):
         
         # 1. Validation: Check if directory exists
         if not os.path.exists(self.split_dir):
-            raise ValueError(f"Directory not found: {self.split_dir}")
+            # Fallback for 'validation' vs 'valid' naming differences between datasets
+            if split == 'validation' and os.path.exists(os.path.join(root_dir, 'valid')):
+                self.split_dir = os.path.join(root_dir, 'valid')
+            elif split == 'valid' and os.path.exists(os.path.join(root_dir, 'validation')):
+                self.split_dir = os.path.join(root_dir, 'validation')
+            else:
+                raise ValueError(f"Directory not found: {self.split_dir}")
 
         # 2. Auto-detect Classes
         # We sort to ensure consistent index mapping (0, 1, 2...) across different machines
@@ -104,14 +110,25 @@ class MultiViewYogaDataset(Dataset):
         file_path, label = self.samples[idx]
         
         # 2. Load the raw data
-        # Structure from previous step: [Coords(99) | Angles(8) | Bones(105) | Vis(33)]
         raw_data = np.load(file_path)
         
         # 3. Parse Components
-        # We only need Coords and Visibility. 
-        # (Angles/Bones in the file are ignored because we re-calculate them for every rotation).
-        coords = raw_data[:99].reshape(33, 3)
-        visibility = raw_data[-33:] 
+        if len(raw_data.shape) == 1 and raw_data.shape[0] == 245:
+            # Format: [Coords(99) | Angles(8) | Bones(105) | Vis(33)]
+            coords = raw_data[:99].reshape(33, 3)
+            visibility = raw_data[-33:]
+        elif len(raw_data.shape) == 2 and raw_data.shape == (33, 4):
+            # Format: (33, 4) - Coords(x,y,z) + Vis
+            coords = raw_data[:, :3]
+            visibility = raw_data[:, 3]
+        elif len(raw_data.shape) == 2 and raw_data.shape == (33, 3):
+            # Format: (33, 3) - Coords(x,y,z) only
+            coords = raw_data
+            visibility = np.ones(33) # Dummy visibility
+        else:
+            # Fallback if it's some other flat format but starts with coords
+            coords = raw_data[:99].reshape(33, 3)
+            visibility = raw_data[-33:] if len(raw_data) >= 132 else np.ones(33) 
         
         # 4. Runtime Augmentation (Training Only)
         # Adds slight noise to coordinates before rotation
