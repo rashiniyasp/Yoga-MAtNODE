@@ -10,9 +10,7 @@
 Fine-grained yoga pose recognition is challenging due to subtle inter-class differences, self-occlusions, and varying camera viewpoints. **Yoga-MAtNODE** is a lightweight, skeleton-only framework that achieves state-of-the-art performance (89.17% on Yoga-82) with only **~75K parameters**.
 <img width="1291" height="1118" alt="image" src="https://github.com/user-attachments/assets/b17c1ee5-dfc7-415e-b166-b5ec52c6cf42" />
 
-
 Key components:
-
 * **Implicit Multi-View Generation:** Dynamically rotates skeletons to 16 views to learn viewpoint-invariant features.
 * **Continuous-Time Dynamics (Neural ODE):** Models joint trajectories as smooth latent dynamics, capturing subtle motion patterns.
 * **Multi-View Attention:** Aggregates features across views to align semantic correspondences.
@@ -42,11 +40,9 @@ Key components:
 **Requirements:** Python 3.9+
 
 Install the required Python packages:
-
 ```bash
 pip install -r requirements.txt
 ```
-
 **Key dependencies:** `torch`, `torchdiffeq`, `mediapipe==0.10.14`, `numpy<2`, `scikit-learn`.
 
 ---
@@ -73,66 +69,22 @@ datasets/
 
 ---
 
-## 🚀 Data Preparation
-
-> To reproduce the experiments, strictly follow the data preparation pipeline. This converts raw images into the normalized 3D skeleton format required by Yoga-MAtNODE.
-
-Run the scripts in order:
-
-1. **Download Images**
-
-```bash
-python data_preparation/01_download_images.py
-```
-
-2. **Sanitize Directory Names**
-
-```bash
-python data_preparation/02_clean_names.py
-```
-
-3. **Generate Splits (Train/Val/Test)**
-
-```bash
-python data_preparation/03_organize_splits.py
-```
-
-4. **Extract 3D Skeletons (MediaPipe)**
-
-> Extracts 33-joint skeletons, centers them, and normalizes scale.
-
-```bash
-python data_preparation/04_extract_skeletons.py
-```
-
-5. **Augment & Balance**
-
-> Ensures 500 samples per class using kinematic augmentation.
-
-```bash
-python data_preparation/05_augment_balance.py
-```
-
----
-
 ## 🧠 Training
 
 The model expects inputs representing rotated views of kinematic features.
 
 To start training on the **Yoga-82** dataset:
-
 ```bash
 python train.py --dataset_root datasets/Yoga82 --epochs 100 --batch_size 256
 ```
 
-To train on the **Yoga-16** dataset:
-
+To train on the **Yoga-16** dataset from scratch:
 ```bash
 python train.py --dataset_root datasets/Yoga16 --epochs 100 --batch_size 256
 ```
+*(Note: We do not provide pretrained weights for Yoga-16, so you will need to train the model yourself to evaluate it).*
 
 **Hyperparameters (as used in experiments):**
-
 * Epochs: 100
 * Batch size: 256
 * Optimizer: AdamW (lr = 1e-3)
@@ -144,12 +96,15 @@ python train.py --dataset_root datasets/Yoga16 --epochs 100 --batch_size 256
 
 To evaluate and reproduce the reported accuracy (89.17% on Yoga-82) and to generate a confusion matrix, use the testing script.
 
-For **Yoga-82**:
+**Pretrained Weights (Yoga-82):** 
+The pretrained model checkpoint (`yoga82_pretrained.pth`) is included directly in the root of this repository. No additional downloads are required.
+
+For **Yoga-82** (Using the provided pretrained weights):
 ```bash
-python test.py --dataset_root datasets/Yoga82 --model_path attention_yoga_node_final.pth
+python test.py --dataset_root datasets/Yoga82 --model_path yoga82_pretrained.pth
 ```
 
-For **Yoga-16**:
+For **Yoga-16** (Using weights you train yourself):
 ```bash
 python test.py --dataset_root datasets/Yoga16 --model_path attention_yoga_node_final.pth
 ```
@@ -174,10 +129,9 @@ python test.py --dataset_root datasets/Yoga16 --model_path attention_yoga_node_f
 * **Implicit Multi-View Generation:** Implemented in `dataset.py` .
 * **Neural ODE Encoding:** Implemented in `model.py` .
 * **Attention Aggregation:** Implemented in `model.py` .
+
 ---
 
 ## 📄 License
 
 This project is licensed under the **MIT License** — see the `LICENSE` file for details.
-
-
