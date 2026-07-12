@@ -37,7 +37,6 @@ def plot_confusion_matrix(y_true, y_pred, classes):
     plt.tight_layout()
     plt.savefig('confusion_matrix.png', dpi=300)
     print("Confusion matrix saved to 'confusion_matrix.png'")
-    plt.show()
 
 def main():
     args = get_args()
