@@ -7,3 +7,5 @@ __pycache__/
 
 # Model checkpoints (ignore test weights)
 *.pth
+
+!attention_yoga_node_final.pth
